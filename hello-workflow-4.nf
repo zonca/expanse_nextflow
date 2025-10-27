@@ -25,7 +25,7 @@ process sayHello {
 process convertToUpper {
 
     publishDir 'results', mode: 'copy'
-    // container 'oras://ghcr.io/mkandes/ubuntu:22.04-amd64'
+    container 'oras://ghcr.io/mkandes/ubuntu:22.04-amd64'
 
     input:
         path input_file
