@@ -28,6 +28,20 @@ process convertToUpper {
     publishDir 'results', mode: 'copy'
     container 'oras://ghcr.io/mkandes/ubuntu:22.04-amd64'
     executor 'slurm'
+    queue 'debug'
+    time '00:10:00'
+    cpus 2
+    memory '4 GB'
+    clusterOptions '--account=sds166 --nodes=1 --ntasks=1 -o logs/%x-%j.out -e logs/%x-%j.err'
+    scratch true
+    beforeScript '''
+      set -euo pipefail
+      export SCRATCH_DIR="/scratch/$USER/job_${SLURM_JOB_ID}"
+      mkdir -p "$SCRATCH_DIR/tmp"
+      export TMPDIR="$SCRATCH_DIR/tmp"
+      export NXF_OPTS="-Djava.io.tmpdir=$TMPDIR"
+      echo "[NF] Using node-local scratch at: $SCRATCH_DIR"
+    '''
 
     input:
         path input_file
