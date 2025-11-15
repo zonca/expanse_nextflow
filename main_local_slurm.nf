@@ -7,6 +7,8 @@ process sayHello {
 
     publishDir 'results', mode: 'copy'
     executor 'local'
+    cpus 1
+    memory '1 GB'
 
     input:
         val greeting
@@ -62,6 +64,8 @@ process collectGreetings {
 
     publishDir 'results', mode: 'copy'
     executor 'local'
+    cpus 1
+    memory '1 GB'
 
     input:
         path input_files
