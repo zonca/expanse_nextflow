@@ -89,21 +89,28 @@ workflow {
 
         // Pick the path based on an external random decision (0 ⇒ skip, 1 ⇒ uppercase)
         def decision_proc = random_decision()
+        def decision_ch = decision_proc.out
+                                .map { it.trim() }
+                                .view { "Random branch decision: $it" }
 
         def decorated_ch = sayHello_out.out
-                                .combine(decision_proc.out.map { it.trim() })
+                                .combine(decision_ch)
+                                .view { "Greeting + decision pair: $it" }
 
         decorated_ch.into { skip_branch; convert_branch }
 
         def skip_uppercase_ch = skip_branch
             .filter { greeting_file, decision -> decision == "0" }
             .map { greeting_file, decision -> greeting_file }
+            .view { "Skipping uppercase for: $it" }
 
         def convert_input_ch = convert_branch
             .filter { greeting_file, decision -> decision == "1" }
             .map { greeting_file, decision -> greeting_file }
+            .view { "Running uppercase on: $it" }
 
         def converted_ch = convertToUpper(convert_input_ch)
+            .view { "Converted file produced: $it" }
 
         def uppercase_ch = Channel.merge(skip_uppercase_ch, converted_ch)
 
