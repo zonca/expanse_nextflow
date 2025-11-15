@@ -85,36 +85,37 @@ workflow {
                             .splitCsv()
                             .map { line -> line[0] }
 
-        def sayHello_out = sayHello(greeting_ch)
+        sayHello(greeting_ch)
 
         // Pick the path based on an external random decision (0 ⇒ skip, 1 ⇒ uppercase)
-        def decision_proc = random_decision()
-        def decision_ch = decision_proc.out
+        random_decision()
+        def decision_ch = random_decision.out
                                 .map { it.trim() }
                                 .view { "Random branch decision: $it" }
 
-        def decorated_ch = sayHello_out.out
-                                .combine(decision_ch)
-                                .view { "Greeting + decision pair: $it" }
+        sayHello.out
+            .combine(decision_ch)
+            .view { "Greeting + decision pair: $it" }
+            .set { decorated_ch }
 
-        decorated_ch.into { skip_branch; convert_branch }
-
-        def skip_uppercase_ch = skip_branch
-            .filter { greeting_file, decision -> decision == "0" }
-            .map { greeting_file, decision -> greeting_file }
+        decorated_ch
+            .filter { tuple -> tuple[1] == "0" }
+            .map { tuple -> tuple[0] }
             .view { "Skipping uppercase for: $it" }
+            .set { skip_uppercase_ch }
 
-        def convert_input_ch = convert_branch
-            .filter { greeting_file, decision -> decision == "1" }
-            .map { greeting_file, decision -> greeting_file }
+        decorated_ch
+            .filter { tuple -> tuple[1] == "1" }
+            .map { tuple -> tuple[0] }
             .view { "Running uppercase on: $it" }
+            .set { convert_input_ch }
 
         def converted_ch = convertToUpper(convert_input_ch)
             .view { "Converted file produced: $it" }
 
-        def uppercase_ch = Channel.merge(skip_uppercase_ch, converted_ch)
+        def uppercase_ch = skip_uppercase_ch.mix(converted_ch)
 
-        def collected = collectGreetings(uppercase_ch.collect(), params.batch)
+        collectGreetings(uppercase_ch.collect(), params.batch)
 
-        collected.count.view { "There were $it greetings in this batch" }
+        collectGreetings.out.count.view { "There were $it greetings in this batch" }
 }
