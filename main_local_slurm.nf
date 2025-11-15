@@ -47,6 +47,7 @@ process convertToUpper {
 process collectGreetings {
 
     publishDir 'results', mode: 'copy'
+    executor 'local'
 
     input:
         path input_files
