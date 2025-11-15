@@ -30,7 +30,7 @@ process convertToUpper {
     publishDir 'results', mode: 'copy'
     container 'oras://ghcr.io/mkandes/ubuntu:22.04-amd64'
     executor 'slurm'
-    queue 'debug'
+    queue 'compute'
     time '00:10:00'
     cpus 2
     memory '4 GB'
